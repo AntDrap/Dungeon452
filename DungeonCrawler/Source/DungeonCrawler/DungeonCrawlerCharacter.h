@@ -39,6 +39,10 @@ class ADungeonCrawlerCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
+	/** Grab Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* GrabAction;
+
 	
 public:
 	ADungeonCrawlerCharacter();

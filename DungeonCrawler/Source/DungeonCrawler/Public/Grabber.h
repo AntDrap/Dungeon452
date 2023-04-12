@@ -15,6 +15,10 @@ class DUNGEONCRAWLER_API UGrabber : public USceneComponent
 public:	
 	// Sets default values for this component's properties
 	UGrabber();
+	UFUNCTION(BlueprintCallable)
+		void Grab();
+	UFUNCTION(BlueprintCallable)
+		void Release();
 
 protected:
 	// Called when the game starts
@@ -28,5 +32,6 @@ private:
 		float MaxGrabDistance = 400;
 	UPROPERTY(EditAnywhere)
 		float GrabRadius = 100;
-		
+	UPROPERTY(EditAnywhere)
+		float HoldDistance = 200;
 };

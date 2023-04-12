@@ -2,6 +2,7 @@
 
 
 #include "Grabber.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
 // Sets default values for this component's properties
 UGrabber::UGrabber()
@@ -29,13 +30,30 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FRotator MyRotation = GetComponentRotation();
-	FString RotationString = MyRotation.ToCompactString();
+	UPhysicsHandleComponent* PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+
+	if (PhysicsHandle == nullptr) { return; }
+
+	if (PhysicsHandle->GetGrabbedComponent() != nullptr)
+	{
+		FVector TargetLocation = GetComponentLocation() + GetForwardVector() * HoldDistance;
+		PhysicsHandle->SetTargetLocationAndRotation(TargetLocation, GetComponentRotation());
+	}
+}
+
+void UGrabber::Grab()
+{
+	UPhysicsHandleComponent* PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+
+	if (PhysicsHandle == nullptr) { return; }
+
+	//FRotator MyRotation = GetComponentRotation();
+	//FString RotationString = MyRotation.ToCompactString();
 	//UE_LOG(LogTemp, Display, TEXT("grabber rotation: %s"), *RotationString)
 
 	FVector Start = GetComponentLocation();
 	FVector End = Start + GetForwardVector() * MaxGrabDistance;
-	DrawDebugLine(GetWorld(), Start, End, FColor::Red);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Red);
 
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(GrabRadius);
 	FHitResult HitResult;
@@ -51,12 +69,33 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 
 	if (HasHit)
 	{
-		FString HitActorName = HitResult.GetActor()->GetActorNameOrLabel();
-		UE_LOG(LogTemp, Display, TEXT("hit actor's name: %s"), *HitActorName);
+		//FString HitActorName = HitResult.GetActor()->GetActorNameOrLabel();
+		//UE_LOG(LogTemp, Display, TEXT("hit actor's name: %s"), *HitActorName);
+		UPrimitiveComponent* HitComponent = HitResult.GetComponent();
+		HitComponent->WakeAllRigidBodies();
+		PhysicsHandle->GrabComponentAtLocationWithRotation
+		(
+			HitComponent,
+			NAME_None,
+			HitResult.ImpactPoint,
+			GetComponentRotation()
+		);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Display, TEXT("no actor hit"));
+		//UE_LOG(LogTemp, Display, TEXT("no actor hit"));
 	}
 }
 
+void UGrabber::Release()
+{
+	UPhysicsHandleComponent* PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+
+	if (PhysicsHandle == nullptr) { return; }
+
+	if (PhysicsHandle->GetGrabbedComponent() != nullptr)
+	{
+		PhysicsHandle->GetGrabbedComponent()->WakeAllRigidBodies();
+		PhysicsHandle->ReleaseComponent();
+	}
+}
